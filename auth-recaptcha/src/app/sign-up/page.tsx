@@ -1,24 +1,120 @@
 "use client";
+
 import Link from "next/link";
 import { useRef, useState } from "react";
 import RegisterButton from "./components/RegisterButton";
 import ReCAPTCHA from "react-google-recaptcha";
+import { z } from "zod";
 
 const page = () => {
+  const [errorMessage, setErrorMessage] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
   const [isHuman, setIsHuman] = useState<boolean>(false);
   const captchaRef = useRef(null);
-  // const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   const formData = new FormData(e.currentTarget);
-  //   const email = formData.get("email");
-  //   const password = formData.get("password");
-  //   const userCredentials = { email, password };
-  // };
+  //Defining the Schema
+  const RegistrationSchema = z.object({
+    username: z
+      .string()
+      .max(30, "Username must be no longer than 30 characters")
+      .nullable(),
+    email: z.string().email("Please enter a valid email address").nullable(),
+    password: z
+      .string()
+      .min(8, "Must be at least 8 characters in length")
+      .regex(
+        new RegExp(".*[A-Z].*"),
+        "At least one upper case letter must contain"
+      )
+      .regex(
+        new RegExp(".*[a-z].*"),
+        "At least one lower case letter must contain"
+      )
+      .regex(new RegExp(".*\\d.*"), "At least one number must contain")
+      .regex(
+        new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
+        "At least one special character must contain"
+      )
+      .nullable(),
+  });
+  type Registration = z.infer<typeof RegistrationSchema>; //inferring type with zod schema
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const username = formData.get("username");
+    const email = formData.get("email");
+    const password = formData.get("password");
+    const userCredentials: Registration = {
+      username: (username as string) || null,
+      email: (email as string) || null,
+      password: (password as string) || null,
+    };
+    console.log(userCredentials);
+
+    if (
+      !userCredentials.username ||
+      !userCredentials.email ||
+      !userCredentials.password
+    ) {
+      //usename require condition
+      if (!userCredentials.username) {
+        setErrorMessage({ ...errorMessage, username: "Username is required" });
+      } else {
+        setErrorMessage({ ...errorMessage, username: "" });
+      }
+
+      //email require condition
+      if (!userCredentials.email) {
+        setErrorMessage((prev) => {
+          return { ...prev, email: "Email is required" };
+        });
+      } else {
+        setErrorMessage((prev) => {
+          return { ...prev, email: "" };
+        });
+      }
+
+      //password require condition
+      if (!userCredentials.password) {
+        setErrorMessage((prev) => {
+          return { ...prev, password: "Password is required" };
+        });
+      } else {
+        setErrorMessage((prev) => {
+          return { ...prev, password: "" };
+        });
+      }
+    } else {
+      console.log("Inside else");
+      setErrorMessage({
+        username: "",
+        email: "",
+        password: "",
+      });
+    }
+    const schemaValidResult = RegistrationSchema.safeParse(userCredentials);
+    console.log(schemaValidResult);
+
+    if (!schemaValidResult.success) {
+      const errorInputField = schemaValidResult.error.issues[0].path[0]; // retrieving the error of the first input field (maybe --> 'username','email','password')
+      const toShowMessage = schemaValidResult.error.issues[0].message;
+      if (errorInputField === "username") {
+        setErrorMessage((prev) => {
+          return { ...prev, username: toShowMessage };
+        });
+      } else if (errorInputField === "password") {
+        setErrorMessage((prev) => {
+          return { ...prev, password: toShowMessage };
+        });
+      }
+    }
+  };
   const handleRecaptcha = async (token: string | null) => {
     try {
       if (token) {
-        console.log("Start Fetching with token: " + token);
-
         const response = await fetch("http://localhost:3000/sign-up/api", {
           method: "POST",
           headers: {
@@ -28,24 +124,37 @@ const page = () => {
         });
         const data = await response.json();
         data.success && setIsHuman(true);
-        console.log("Data from client", data);
-        console.log(captchaRef.current);
       }
     } catch (error) {
-      console.log("Error: " + error);
+      console.log("Recapture Error: " + error);
       setIsHuman(false);
     }
   };
   return (
-    <div className="font-[family-name:var(--font-geist-mono)] h-[100vh] flex">
+    <div className="font-[family-name:var(--font-geist-mono)] h-[80vh] flex">
       <div className="min-w-[500px] m-auto border p-8 rounded-md shadow-md">
         <div className="text-center">
-          <h1 className="font-bold text-2xl">Welcome From Sign-up Page</h1>
-          <p className="mt-3">Register for an account!</p>
+          <h1 className="font-bold text-xl">Welcome From Sign-up Page</h1>
         </div>
         <div className="mt-10">
-          <form id="registerForm" className="flex flex-col">
+          <form
+            id="registerForm"
+            className="flex flex-col"
+            onSubmit={handleSubmit}
+          >
             <div className="w-full flex flex-col">
+              <p>Username</p>
+              <input
+                type="text"
+                name="username"
+                className="border p-2 hover:border-black mt-2"
+                placeholder="Enter your name"
+              />
+              <span className="text-red-500 text-sm">
+                {errorMessage.username}
+              </span>
+            </div>
+            <div className="w-full flex flex-col mt-6">
               <p>Email</p>
               <input
                 type="email"
@@ -53,6 +162,7 @@ const page = () => {
                 className="border p-2 hover:border-black mt-2"
                 placeholder="Enter your email"
               />
+              <span className="text-red-500 text-sm">{errorMessage.email}</span>
             </div>
             <div className="w-full flex flex-col mt-6">
               <p>Password</p>
@@ -62,6 +172,9 @@ const page = () => {
                 className="mt-3 border p-2 hover:border-black"
                 placeholder="Enter your password"
               />
+              <span className="text-red-500 text-sm">
+                {errorMessage.password}
+              </span>
               <div className="text-sm mt-3">
                 <p className="cursor-pointer hover:underline w-[150px]">
                   {" "}

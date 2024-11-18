@@ -5,8 +5,6 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  console.log("Inside a request handler");
-
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ message: "Only POST request is allowed" }),
@@ -25,14 +23,10 @@ export async function POST(req: NextRequest) {
     });
   }
   try {
-    console.log("Token", token);
-    console.log("Secret Key", secretKey);
-
     const response = await fetch(
       `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
     );
     const data = await response.json();
-    console.log("data from server", data);
     return new Response(JSON.stringify(data), {
       status: 200,
     });
