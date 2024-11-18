@@ -18,9 +18,8 @@ const page = () => {
   const RegistrationSchema = z.object({
     username: z
       .string()
-      .max(30, "Username must be no longer than 30 characters")
-      .nullable(),
-    email: z.string().email("Please enter a valid email address").nullable(),
+      .max(30, "Username must be no longer than 30 characters"),
+    email: z.string(),
     password: z
       .string()
       .min(8, "Must be at least 8 characters in length")
@@ -36,24 +35,14 @@ const page = () => {
       .regex(
         new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
         "At least one special character must contain"
-      )
-      .nullable(),
+      ),
   });
-  type Registration = z.infer<typeof RegistrationSchema>; //inferring type with zod schema
+  type Registration = z.infer<typeof RegistrationSchema>; //inferring type with zod schema (it cannot be assigned type to the formData Object yet)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const username = formData.get("username");
-    const email = formData.get("email");
-    const password = formData.get("password");
-    const userCredentials: Registration = {
-      username: (username as string) || null,
-      email: (email as string) || null,
-      password: (password as string) || null,
-    };
-    console.log(userCredentials);
-
+    const userCredentials = Object.fromEntries(formData); // [['username','value'],['email','value'],['password','value']] ===> {username: 'value',email: 'value',password: 'value}
     if (
       !userCredentials.username ||
       !userCredentials.email ||
@@ -76,19 +65,8 @@ const page = () => {
           return { ...prev, email: "" };
         });
       }
-
-      //password require condition
-      if (!userCredentials.password) {
-        setErrorMessage((prev) => {
-          return { ...prev, password: "Password is required" };
-        });
-      } else {
-        setErrorMessage((prev) => {
-          return { ...prev, password: "" };
-        });
-      }
     } else {
-      console.log("Inside else");
+      // clean up the error message when the user input is not empty
       setErrorMessage({
         username: "",
         email: "",
@@ -96,8 +74,6 @@ const page = () => {
       });
     }
     const schemaValidResult = RegistrationSchema.safeParse(userCredentials);
-    console.log(schemaValidResult);
-
     if (!schemaValidResult.success) {
       const errorInputField = schemaValidResult.error.issues[0].path[0]; // retrieving the error of the first input field (maybe --> 'username','email','password')
       const toShowMessage = schemaValidResult.error.issues[0].message;
@@ -106,9 +82,15 @@ const page = () => {
           return { ...prev, username: toShowMessage };
         });
       } else if (errorInputField === "password") {
-        setErrorMessage((prev) => {
-          return { ...prev, password: toShowMessage };
-        });
+        if (userCredentials.password === "") {
+          setErrorMessage((prev) => {
+            return { ...prev, password: "Password is required" };
+          });
+        } else {
+          setErrorMessage((prev) => {
+            return { ...prev, password: toShowMessage };
+          });
+        }
       }
     }
   };
