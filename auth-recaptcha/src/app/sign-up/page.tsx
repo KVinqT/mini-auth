@@ -5,6 +5,11 @@ import { useRef, useState } from "react";
 import RegisterButton from "./components/RegisterButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { z } from "zod";
+import {
+  auth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "@/firebase/firebaseApp";
 
 const page = () => {
   const [errorMessage, setErrorMessage] = useState({
@@ -74,6 +79,7 @@ const page = () => {
       });
     }
     const schemaValidResult = RegistrationSchema.safeParse(userCredentials);
+
     if (!schemaValidResult.success) {
       const errorInputField = schemaValidResult.error.issues[0].path[0]; // retrieving the error of the first input field (maybe --> 'username','email','password')
       const toShowMessage = schemaValidResult.error.issues[0].message;
@@ -92,6 +98,33 @@ const page = () => {
           });
         }
       }
+    } else if (schemaValidResult.success) {
+      //user's credentials validation is done and the below codes are associated with firebase authentication and fire store
+      //1.Register (Sign-up) new user in firestore
+      createUserWithEmailAndPassword(
+        auth,
+        userCredentials.email as string,
+        userCredentials.password as string
+      )
+        .then((userCredential) => {
+          // Signed up
+          console.log("User signed up successfully");
+          const user = userCredential.user;
+          console.log("Signup user", user);
+          return user;
+        })
+        .then((user) => {
+          sendEmailVerification(user);
+        })
+        .then(() => {
+          console.log("Email verification is sent to your email");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.log("errorCode", errorCode);
+          console.log("errorMessage", errorMessage);
+        });
     }
   };
   const handleRecaptcha = async (token: string | null) => {
