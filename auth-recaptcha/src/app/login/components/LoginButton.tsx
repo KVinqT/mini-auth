@@ -1,6 +1,6 @@
 import React from "react";
 
-const RegisterButton = ({ id, isHuman }: { id: string; isHuman: boolean }) => {
+const LoginButton = ({ id, isHuman }: { id: string; isHuman: boolean }) => {
   return (
     <>
       <button
@@ -10,10 +10,10 @@ const RegisterButton = ({ id, isHuman }: { id: string; isHuman: boolean }) => {
         id={id}
         disabled={!isHuman}
       >
-        Register
+        Login
       </button>
     </>
   );
 };
 
-export default RegisterButton;
+export default LoginButton;

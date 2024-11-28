@@ -8,6 +8,7 @@ import { z } from "zod";
 import {
   auth,
   createUserWithEmailAndPassword,
+  onAuthStateChanged,
   sendEmailVerification,
 } from "@/firebase/firebaseApp";
 
@@ -19,6 +20,7 @@ const page = () => {
   });
   const [isHuman, setIsHuman] = useState<boolean>(false);
   const captchaRef = useRef(null);
+
   //Defining the Schema
   const RegistrationSchema = z.object({
     username: z
@@ -100,7 +102,7 @@ const page = () => {
       }
     } else if (schemaValidResult.success) {
       //user's credentials validation is done and the below codes are associated with firebase authentication and fire store
-      //1.Register (Sign-up) new user in firestore
+      //1.Register (Sign-up) new user in auth database (not inside a firestore)
       createUserWithEmailAndPassword(
         auth,
         userCredentials.email as string,
@@ -108,22 +110,33 @@ const page = () => {
       )
         .then((userCredential) => {
           // Signed up
-          console.log("User signed up successfully");
-          const user = userCredential.user;
-          console.log("Signup user", user);
-          return user;
-        })
-        .then((user) => {
-          sendEmailVerification(user);
-        })
-        .then(() => {
-          console.log("Email verification is sent to your email");
+          const user = userCredential.user; //represents a user account that has signed up for an app
+          //2. Send email verification link to signed up user's email address
+          sendEmailVerification(user, {
+            url: "http://localhost:3000/welcome",
+          });
+          //for the initial state the user instance is null
+          //the below callback will be triggered when the user make events such as sign-up/sign-in/sign-out and change password
+          onAuthStateChanged(auth, (user) => {
+            if (user !== null) {
+              if (!user?.emailVerified) {
+                setErrorMessage((prev) => {
+                  return {
+                    ...prev,
+                    email:
+                      "Email verification link is sent to your email, please verify for next page",
+                  };
+                });
+              }
+            }
+          });
         })
         .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log("errorCode", errorCode);
-          console.log("errorMessage", errorMessage);
+          if (error.code === "auth/email-already-in-use") {
+            setErrorMessage((prev) => {
+              return { ...prev, email: "Email is already in use" };
+            });
+          }
         });
     }
   };
@@ -145,6 +158,7 @@ const page = () => {
       setIsHuman(false);
     }
   };
+
   return (
     <div className="font-[family-name:var(--font-geist-mono)] h-[80vh] flex">
       <div className="min-w-[500px] m-auto border p-8 rounded-md shadow-md">
@@ -177,7 +191,9 @@ const page = () => {
                 className="border p-2 hover:border-black mt-2"
                 placeholder="Enter your email"
               />
-              <span className="text-red-500 text-sm">{errorMessage.email}</span>
+              <span className="text-red-500 text-sm w-[450px]">
+                {errorMessage.email}
+              </span>
             </div>
             <div className="w-full flex flex-col mt-6">
               <p>Password</p>

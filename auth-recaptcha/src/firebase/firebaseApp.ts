@@ -3,6 +3,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  onAuthStateChanged,
 } from "firebase/auth";
 
 // TODO: Replace the following with your app's Firebase project configuration (Auth-recaptcha(project) --> mini-two-factor-auth(app))
@@ -22,4 +23,9 @@ const app = initializeApp(firebaseConfig);
 //initialize firebase authentication
 const auth = getAuth(app);
 
-export { auth, createUserWithEmailAndPassword, sendEmailVerification };
+export {
+  auth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  onAuthStateChanged,
+};
