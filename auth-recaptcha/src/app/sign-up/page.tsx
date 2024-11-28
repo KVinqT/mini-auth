@@ -160,19 +160,19 @@ const page = () => {
   };
 
   return (
-    <div className="font-[family-name:var(--font-geist-mono)] h-[80vh] flex">
-      <div className="min-w-[500px] m-auto border p-8 rounded-md shadow-md">
+    <div className="font-[family-name:var(--font-geist-mono)] h-[100vh] flex">
+      <div className="w-[500px] m-auto border p-8 rounded-md shadow-md">
         <div className="text-center">
-          <h1 className="font-bold text-xl">Welcome From Sign-up Page</h1>
+          <h1 className="font-bold text-lg">Welcome From Sign-up Page</h1>
         </div>
-        <div className="mt-10">
+        <div className="mt-7">
           <form
             id="registerForm"
             className="flex flex-col"
             onSubmit={handleSubmit}
           >
             <div className="w-full flex flex-col">
-              <p>Username</p>
+              <p className="text-sm">Username</p>
               <input
                 type="text"
                 name="username"
@@ -183,8 +183,8 @@ const page = () => {
                 {errorMessage.username}
               </span>
             </div>
-            <div className="w-full flex flex-col mt-6">
-              <p>Email</p>
+            <div className="w-full flex flex-col mt-4">
+              <p className="text-sm">Email</p>
               <input
                 type="email"
                 name="email"
@@ -195,8 +195,8 @@ const page = () => {
                 {errorMessage.email}
               </span>
             </div>
-            <div className="w-full flex flex-col mt-6">
-              <p>Password</p>
+            <div className="w-full flex flex-col mt-4">
+              <p className="text-sm">Password</p>
               <input
                 type="password"
                 name="password"
@@ -206,7 +206,7 @@ const page = () => {
               <span className="text-red-500 text-sm">
                 {errorMessage.password}
               </span>
-              <div className="text-sm mt-3">
+              <div className="text-sm mt-2">
                 <p className="cursor-pointer hover:underline w-[150px]">
                   {" "}
                   Forget password?
@@ -216,7 +216,7 @@ const page = () => {
             </div>
           </form>
         </div>
-        <div className="mt-5 flex justify-center">
+        <div className="mt-4 flex justify-center">
           <Link href="/login" replace className="archivo-font text-black">
             <p className="text-sm cursor-pointer hover:underline">
               Already have a mango account? Log in
