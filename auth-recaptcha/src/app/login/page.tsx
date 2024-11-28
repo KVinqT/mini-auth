@@ -118,7 +118,7 @@ const page = () => {
           </form>
         </div>
         <div className="mt-5 flex justify-center">
-          <Link href="/login" replace className="archivo-font text-black">
+          <Link href="/sign-up" replace className="archivo-font text-black">
             <p className="text-sm cursor-pointer hover:underline">
               Do not have any account yet? Sign-up
             </p>{" "}
