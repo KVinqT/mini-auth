@@ -101,43 +101,6 @@ const page = () => {
         }
       }
     } else if (schemaValidResult.success) {
-      //user's credentials validation is done and the below codes are associated with firebase authentication and fire store
-      //1.Register (Sign-up) new user in auth database (not inside a firestore)
-      createUserWithEmailAndPassword(
-        auth,
-        userCredentials.email as string,
-        userCredentials.password as string
-      )
-        .then((userCredential) => {
-          // Signed up
-          const user = userCredential.user; //represents a user account that has signed up for an app
-          //2. Send email verification link to signed up user's email address
-          sendEmailVerification(user, {
-            url: "http://localhost:3000/welcome",
-          });
-          //for the initial state the user instance is null
-          //the below callback will be triggered when the user make events such as sign-up/sign-in/sign-out and change password
-          onAuthStateChanged(auth, (user) => {
-            if (user !== null) {
-              if (!user?.emailVerified) {
-                setErrorMessage((prev) => {
-                  return {
-                    ...prev,
-                    email:
-                      "Email verification link is sent to your email, please verify for next page",
-                  };
-                });
-              }
-            }
-          });
-        })
-        .catch((error) => {
-          if (error.code === "auth/email-already-in-use") {
-            setErrorMessage((prev) => {
-              return { ...prev, email: "Email is already in use" };
-            });
-          }
-        });
     }
   };
   const handleRecaptcha = async (token: string | null) => {
