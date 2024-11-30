@@ -101,6 +101,25 @@ const page = () => {
         }
       }
     } else if (schemaValidResult.success) {
+      //sending request to the server api
+      const response = fetch("http://localhost:5000/api/sign-up", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userCredentials),
+      });
+      response
+        .then((data) => {
+          if (data.status === 200) {
+            return data.json();
+          } else {
+            console.log(`Server error with status ${data.status}`);
+          }
+        })
+        .then((data) => {
+          console.log("data from server", data);
+        });
     }
   };
   const handleRecaptcha = async (token: string | null) => {
