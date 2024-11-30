@@ -4,6 +4,7 @@ import LoginButton from "./components/LoginButton";
 import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 const page = () => {
   const [isHuman, setIsHuman] = useState<boolean>(false);
@@ -11,6 +12,8 @@ const page = () => {
     email: "",
     password: "",
   });
+  const router = useRouter();
+
   const LoginSchema = z.object({
     email: z.string().email({ message: "Please enter a valid email format" }),
     password: z.string().min(8, "Please enter a valid password"),
@@ -52,6 +55,17 @@ const page = () => {
           });
         }
       }
+    } else if (schemaValidResult.success) {
+      const response = fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userCredentials),
+      });
+      response.then((data) => {
+        data.status === 200 && router.replace("http://localhost:3000/welcome");
+      });
     }
   };
   const handleRecaptcha = async (token: string | null) => {
