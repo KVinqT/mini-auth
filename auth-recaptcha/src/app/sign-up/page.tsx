@@ -5,12 +5,6 @@ import { useRef, useState } from "react";
 import RegisterButton from "./components/RegisterButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { z } from "zod";
-import {
-  auth,
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  sendEmailVerification,
-} from "@/firebase/firebaseApp";
 
 const page = () => {
   const [errorMessage, setErrorMessage] = useState({
