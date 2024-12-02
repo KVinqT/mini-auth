@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import RegisterButton from "./components/RegisterButton";
 import ReCAPTCHA from "react-google-recaptcha";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 const page = () => {
   const [errorMessage, setErrorMessage] = useState({
@@ -14,7 +15,7 @@ const page = () => {
   });
   const [isHuman, setIsHuman] = useState<boolean>(false);
   const captchaRef = useRef(null);
-
+  const router = useRouter();
   //Defining the Schema
   const RegistrationSchema = z.object({
     username: z
@@ -95,24 +96,20 @@ const page = () => {
         }
       }
     } else if (schemaValidResult.success) {
-      //sending request to the server api
-      const response = fetch("http://localhost:5000/api/sign-up", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userCredentials),
-      });
-      response
+      fetch(
+        `http://localhost:5000/api/send-email-verification?email=${userCredentials.email}`,
+        {
+          method: "POST",
+        }
+      )
         .then((data) => {
-          if (data.status === 200) {
-            return data.json();
-          } else {
-            console.log(`Server error with status ${data.status}`);
-          }
+          return data.json();
         })
         .then((data) => {
-          console.log("data from server", data);
+          console.log(data);
+          router.push(
+            `/sign-up/verify-email?username=${userCredentials.username}&email=${userCredentials.email}&password=${userCredentials.password}`
+          );
         });
     }
   };
